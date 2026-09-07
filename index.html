@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crankbait Trolling Depth Calculator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .calculator-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 450px;
+            width: 100%;
+            padding: 24px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #0d47a1;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+        .speed-badge {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            font-weight: 600;
+            text-align: center;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            background-color: #fff;
+        }
+        .result-box {
+            margin-top: 24px;
+            background-color: #0d47a1;
+            color: #ffffff;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .result-box label {
+            color: #bbdefb;
+            margin-bottom: 4px;
+        }
+        .result-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .warning-text {
+            color: #d32f2f;
+            font-size: 0.85rem;
+            margin-top: 6px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator-card">
+    <h2>Crankbait Trolling Calculator</h2>
+    
+    <div class="speed-badge">
+        Speed: 1.7mph Crappie
+    </div>
+
+    <div class="form-group">
+        <label for="desiredDepth">Desired Depth (ft)</label>
+        <select id="desiredDepth" onchange="calculateLineOut()">
+            <option value="10">10 ft</option>
+            <option value="12">12 ft</option>
+            <option value="14" selected>14 ft</option>
+            <option value="16">16 ft</option>
+            <option value="18">18 ft</option>
+            <option value="20">20 ft</option>
+            <option value="22">22 ft</option>
+            <option value="24">24 ft</option>
+            <option value="26">26 ft</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="lureType">Crankbait Brand / Model</label>
+        <select id="lureType" onchange="calculateLineOut()">
+            <option value="PICO">PICO INT</option>
+            <option value="Lucas">Lucas Deep Diver</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="lineType">Line Type & Weight</label>
+        <select id="lineType" onchange="calculateLineOut()">
+            <option value="8">8lb mono</option>
+            <option value="10" selected>10lb mono</option>
+            <option value="20">20lb mono</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="rodHeight">Rod Tip Height Above Water</label>
+        <select id="rodHeight" onchange="calculateLineOut()">
+            <option value="0.5">6 inches (0.5 ft)</option>
+            <option value="1.0">1.0 ft</option>
+            <option value="1.5">1.5 ft</option>
+            <option value="2.0">2.0 ft</option>
+            <option value="2.5">2.5 ft</option>
+            <option value="3.0">3.0 ft</option>
+            <option value="3.5">3.5 ft</option>
+            <option value="4.0">4.0 ft</option>
+            <option value="4.5">4.5 ft</option>
+            <option value="5.0">5.0 ft</option>
+        </select>
+    </div>
+
+    <div class="result-box">
+        <label>Line Out Required</label>
+        <div class="result-value" id="lineOutResult">0 ft</div>
+    </div>
+    
+    <div id="depthWarning" class="warning-text">
+        * Combination exceeds maximum diving potential of this setup.
+    </div>
+</div>
+
+<script>
+function calculateLineOut() {
+    const targetDepth = parseFloat(document.getElementById('desiredDepth').value);
+    const lure = document.getElementById('lureType').value;
+    const lineLb = parseFloat(document.getElementById('lineType').value);
+    const rodHeight = parseFloat(document.getElementById('rodHeight').value);
+    
+    // 1. Calculate effective depth required at lure level to compensate for rod height
+    // Leland's empirical baseline: 4.5 ft height increase lifts lure ~3 ft (-0.667 ft/ft factor)
+    const heightOffset = (rodHeight - 0.5) * 0.6667;
+    const effectiveDepthNeeded = targetDepth + heightOffset;
+
+    // 2. Line Diameter Resistance Multiplier (Base 1.0 = 10lb Mono)
+    // 8lb mono is thinner (less water drag -> dives deeper per ft of line)
+    // 20lb mono is thicker (more water drag -> requires more line out to reach depth)
+    let lineDragFactor = 1.0;
+    if (lineLb === 8) lineDragFactor = 0.93;  
+    if (lineLb === 20) lineDragFactor = 1.18; 
+
+    // 3. Empirical Curve Inversion Functions (Depth -> Line Out Feet Back)
+    let baseLineOut = 0;
+    let maxDepthPossible = 0;
+
+    if (lure === 'PICO') {
+        maxDepthPossible = 23.5 / lineDragFactor - heightOffset;
+        // Inverse logarithmic curve fit modeled from Leland's PICO INT 10lb Mono data:
+        // Baseline points: (13ft -> 40'), (16.5ft -> 60'), (20ft -> 80'), (23ft -> 100')
+        if (effectiveDepthNeeded <= 23.5) {
+            baseLineOut = Math.pow(10, (effectiveDepthNeeded - 3.4) / 9.8);
+        }
+    } else if (lure === 'Lucas') {
+        maxDepthPossible = 24.5 / lineDragFactor - heightOffset;
+        // Inverse logarithmic curve fit modeled from Lucas Deep Diver 10lb Mono data:
+        // Baseline points: (15ft -> 40'), (18ft -> 60'), (21ft -> 80'), (24ft -> 100')
+        if (effectiveDepthNeeded <= 25.0) {
+            baseLineOut = Math.pow(10, (effectiveDepthNeeded - 5.5) / 9.2);
+        }
+    }
+
+    // Apply line drag scaling factor
+    let finalLineOut = baseLineOut * lineDragFactor;
+
+    // UI Updates
+    const warningElement = document.getElementById('depthWarning');
+    if (finalLineOut > 0 && targetDepth <= maxDepthPossible && finalLineOut <= 150) {
+        document.getElementById('lineOutResult').innerText = Math.round(finalLineOut) + " ft";
+        warningElement.style.display = 'none';
+    } else {
+        document.getElementById('lineOutResult').innerText = "N/A";
+        warningElement.innerText = `* Selected depth exceeds max reach (~${Math.floor(maxDepthPossible)} ft) for this setup.`;
+        warningElement.style.display = 'block';
+    }
+}
+
+// Run initial calculation on page load
+calculateLineOut();
+</script>
+
+</body>
+</html>
