@@ -92,14 +92,21 @@
         <label for="desiredDepth">Desired Depth (ft)</label>
         <select id="desiredDepth" onchange="calculateLineOut()">
             <option value="10">10 ft</option>
+            <option value="11">11 ft</option>
             <option value="12">12 ft</option>
-            <option value="14" selected>14 ft</option>
+            <option value="13">13 ft</option>
+            <option value="14">14 ft</option>
+            <option value="15">15 ft</option>
             <option value="16">16 ft</option>
-            <option value="18">18 ft</option>
+            <option value="17">17 ft</option>
+            <option value="18" selected>18 ft</option>
+            <option value="19">19 ft</option>
             <option value="20">20 ft</option>
+            <option value="21">21 ft</option>
             <option value="22">22 ft</option>
+            <option value="23">23 ft</option>
             <option value="24">24 ft</option>
-            <option value="26">26 ft</option>
+            <option value="25">25 ft</option>
         </select>
     </div>
 
@@ -107,7 +114,7 @@
         <label for="lureType">Crankbait Brand / Model</label>
         <select id="lureType" onchange="calculateLineOut()">
             <option value="PICO">PICO INT</option>
-            <option value="Lucas">Lucas Deep Diver</option>
+            <option value="Lucas" selected>Lucas Deep Diver</option>
         </select>
     </div>
 
@@ -123,7 +130,7 @@
     <div class="form-group">
         <label for="rodHeight">Rod Tip Height Above Water</label>
         <select id="rodHeight" onchange="calculateLineOut()">
-            <option value="0.5">6 inches (0.5 ft)</option>
+            <option value="0.5" selected>6 inches (0.5 ft)</option>
             <option value="1.0">1.0 ft</option>
             <option value="1.5">1.5 ft</option>
             <option value="2.0">2.0 ft</option>
@@ -169,6 +176,7 @@ function calculateLineOut() {
         maxDepthPossible = (23.0 / lineDragFactor) - heightOffset;
         if (effectiveDepthNeeded <= 23.5) {
             const D = effectiveDepthNeeded;
+            // Fits Leland's PICO benchmarks: (40'->13', 60'->16.5', 80'->20', 100'->23')
             const baseLineOut = (0.2083 * D * D) - (1.50 * D) + 25.0;
             finalLineOut = baseLineOut * lineDragFactor;
         }
@@ -176,7 +184,8 @@ function calculateLineOut() {
         maxDepthPossible = (24.0 / lineDragFactor) - heightOffset;
         if (effectiveDepthNeeded <= 24.5) {
             const D = effectiveDepthNeeded;
-            const baseLineOut = (0.1852 * D * D) - (1.33 * D) + 18.0;
+            // Fits Leland's Lucas benchmarks: (40'->15', 60'->18', 80'->21', 100'->24')
+            const baseLineOut = (0.3125 * D * D) - (5.0 * D) + 50.0;
             finalLineOut = baseLineOut * lineDragFactor;
         }
     }
